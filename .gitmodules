@@ -15,7 +15,7 @@
 	url = https://github.com/bjornbytes/lovr-docs
 [submodule "3rd/EmmyLuaCodeStyle"]
 	path = 3rd/EmmyLuaCodeStyle
-	url = https://github.com/CppCXY/EmmyLuaCodeStyle
+	url = https://github.com/kuronekoyang/EmmyLuaCodeStyle_mercury.git
 [submodule "3rd/json.lua"]
 	path = 3rd/json.lua
 	url = https://github.com/actboy168/json.lua

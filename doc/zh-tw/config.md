@@ -1828,6 +1828,7 @@ Array<string>
 * ``"!"``
 * ``"!="``
 * ``"continue"``
+* ``"async"``
 
 ## default
 
