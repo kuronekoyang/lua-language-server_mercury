@@ -590,7 +590,7 @@ local function skipComment(isAction)
         local result, right = resolveLongString '*/'
         pushLongCommentError(left, right)
         State.comms[#State.comms+1] = {
-            type   = 'comment.clong',
+            type   = 'comment.long',
             start  = left,
             finish = right,
             text   = result,
@@ -1517,6 +1517,7 @@ local function parseExpList(mini)
                 end
                 local nextToken = peekWord()
                 if  isKeyWord(nextToken, Tokens[Index + 2])
+                and not (nextToken == 'async' and State.options.nonstandardSymbol['async'])
                 and nextToken ~= 'function'
                 and nextToken ~= 'true'
                 and nextToken ~= 'false'
@@ -2283,6 +2284,15 @@ end
 
 local function parseFunction(isLocal, isAction)
     local funcLeft  = getPosition(Tokens[Index], 'left')
+    local isAsync = Tokens[Index + 1] == 'async'
+    if isAsync then
+        Index = Index + 2
+        skipSpace(true)
+        if Tokens[Index + 1] ~= 'function' then
+            missSymbol 'function'
+            return
+        end
+    end
     local funcRight = getPosition(Tokens[Index] + 7, 'right')
     local func = {
         type    = 'function',
@@ -2294,6 +2304,7 @@ local function parseFunction(isLocal, isAction)
             [2] = funcRight,
         },
     }
+    
     Index = Index + 2
     skipSpace(true)
     local hasLeftParen = Tokens[Index + 1] == '('
@@ -2575,7 +2586,7 @@ local function parseExpUnit()
         return parseBoolean()
     end
 
-    if token == 'function' then
+    if (token == 'async' and State.options.nonstandardSymbol['async']) or token == 'function' then
         return parseFunction()
     end
 
@@ -3088,8 +3099,11 @@ local function parseLocal()
         return nil
     end
 
-    if word == 'function' then
+    if (word == 'async' and State.options.nonstandardSymbol['async']) or word == 'function' then
         local func = parseFunction(true, true)
+        if not func then
+            return nil
+        end
         local name = func.name
         if name then
             func.name    = nil
@@ -3975,8 +3989,11 @@ function parseAction()
         return parseGoTo()
     end
 
-    if token == 'function' then
+    if (token == 'async' and State.options.nonstandardSymbol['async']) or token == 'function' then
         local exp = parseFunction(false, true)
+        if not exp then
+            return nil, true
+        end
         local name = exp.name
         if name then
             exp.name    = nil
