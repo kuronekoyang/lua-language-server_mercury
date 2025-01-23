@@ -247,6 +247,21 @@ local Care = util.switch()
         }
     end)
     : case 'function'
+    : call(function (source, options, results)
+        --if not options.keyword then
+        --    return
+        --end
+        local keyword = source.keyword
+        if keyword then
+            for i = 1, #keyword, 2 do
+                results[#results+1] = {
+                start      = keyword[i],
+                finish     = keyword[i + 1],
+                type       = define.TokenTypes.keyword,
+                }
+            end
+        end
+    end)
     : case 'ifblock'
     : case 'elseifblock'
     : case 'elseblock'
