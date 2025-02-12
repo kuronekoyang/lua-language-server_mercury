@@ -995,6 +995,22 @@ function m.getSpecial(source)
     return source.special
 end
 
+local function _TestConst(obj)
+    local node = obj.node
+    if not node then
+        return false
+    end
+    local attrs = node.attrs
+    if not attrs then
+        return false
+    end
+    local attr = attrs[1]
+    if not attr then
+        return false
+    end
+    return attr[1] == 'const'
+end
+
 function m.getKeyNameOfLiteral(obj)
     if not obj then
         return nil
@@ -1011,6 +1027,11 @@ function m.getKeyNameOfLiteral(obj)
     or     tp == 'doc.type.string'
     or     tp == 'doc.type.boolean' then
         return obj[1]
+    elseif tp == 'getlocal' then
+        if _TestConst(obj) then
+            local vm = require 'vm'
+            return vm.getInfer(obj):tryGetConstValue()
+        end
     end
 end
 

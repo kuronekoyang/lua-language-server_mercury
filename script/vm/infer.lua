@@ -495,6 +495,29 @@ function mt:getSubViews(uri)
     return self._subViews
 end
 
+function mt:tryGetConstValue()
+    if not self.node then
+        return nil
+    end
+    local mark     = {}
+    local values = {}
+    for n in self.node:eachObject() do
+        if n.type == 'string'
+        or n.type == 'number'
+        or n.type == 'integer'
+        or n.type == 'boolean' then
+            local literal = n[1]
+            if literal ~= nil and not mark[literal] then
+                values[#values+1] = literal
+                mark[literal] = true
+            end
+        end
+    end
+    if #values == 1 then
+        return values[1]
+    end
+end
+
 ---@return string?
 function mt:viewLiterals()
     if not self.node then
