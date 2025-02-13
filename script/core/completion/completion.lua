@@ -599,7 +599,7 @@ local function completionSort(a, b)
         end
     elseif aType == 'string' and string.byte(a, 1, 1) == 91 then
         if bType == 'string' and string.byte(b, 1, 1) == 91 then
-            return util.compareStringhumanization(a, b)
+            return util.compareStringHumanization(a, b)
         else
             return true
         end
