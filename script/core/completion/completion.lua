@@ -460,7 +460,7 @@ local function checkFieldFromFieldToIndex(state, name, parent, word, position)
     local offset      = guide.positionToOffset(state, position)
     local wordStartOffset = offset - #word
     local wordStartPos = guide.offsetToPosition(state, wordStartOffset)
-    local newText = ('[%s]'):format(name)
+    local newText = string.byte(name, 1, 1) == 91 and name or ('[%s]'):format(name)
     textEdit = {
         start   = wordStartPos,
         finish  = position,
@@ -560,6 +560,60 @@ local function checkFieldThen(state, name, src, word, position, parent, oop, res
     }
 end
 
+local function checkLocalConstObject(obj)
+    if not obj then
+        return false
+    end
+    if obj.type ~= 'local' then
+        return false
+    end
+    local attrs = obj.attrs
+    if not attrs then
+        return false
+    end
+    local attr = attrs[1]
+    if not attr then
+        return false
+    end
+    if attr[1] ~= 'const' then
+        return false
+    end
+    local name = obj[1]
+    if name == nil then
+        return false
+    end
+    local value = obj.value and obj.value[1]
+    return true, name, value
+end
+
+local function completionSort(a, b)
+    local aType = type(a)
+    local bType = type(b)
+    if aType == 'number' then
+        if bType == 'number' then
+            return a < b
+        elseif bType == 'string' and string.byte(b, 1, 1) == 91 then
+            return false
+        else
+            return true
+        end
+    elseif aType == 'string' and string.byte(a, 1, 1) == 91 then
+        if bType == 'string' and string.byte(b, 1, 1) == 91 then
+            return util.compareStringhumanization(a, b)
+        else
+            return true
+        end
+    else
+        if bType == 'number' then
+            return false
+        elseif bType == 'string' and string.byte(b, 1, 1) == 91 then
+            return false
+        else
+            return util.compareStringHumanization(tostring(a), tostring(b))
+        end
+    end
+end
+
 ---@async
 local function checkFieldOfRefs(refs, state, word, startPos, position, parent, oop, results, locals, isGlobal)
     local fields = {}
@@ -577,6 +631,7 @@ local function checkFieldOfRefs(refs, state, word, startPos, position, parent, o
         if isSameSource(state, src, startPos) then
             goto CONTINUE
         end
+        local originalName = name
         name = tostring(name)
         if isGlobal and locals and locals[name] then
             goto CONTINUE
@@ -617,6 +672,19 @@ local function checkFieldOfRefs(refs, state, word, startPos, position, parent, o
         if last == nil and not funcs[name] then
             fields[name] = src
             count = count + 1
+
+            local locals = state.ast and state.ast.locals
+            if locals then
+                for _, o in ipairs(locals) do
+                    local isConst, constName, constValue = checkLocalConstObject(o)
+                    if isConst and type(constValue) == "number" and constValue == tonumber(originalName) then
+                        local constName = string.format('[%s]', tostring(constName))
+                        fields[constName] = src
+                        count = count + 1
+                    end
+                end
+            end
+
             goto CONTINUE
         end
         if vm.getDeprecated(src) then
@@ -630,7 +698,7 @@ local function checkFieldOfRefs(refs, state, word, startPos, position, parent, o
     end
 
     local fieldResults = {}
-    for name, src in util.sortPairs(fields) do
+    for name, src in util.sortPairs(fields, completionSort) do
         if src then
             checkFieldThen(state, name, src, word, position, parent, oop, fieldResults)
             await.delay()

@@ -368,6 +368,22 @@ function m.sortPairs(t, sorter)
     end
 end
 
+function m.compareStringHumanization(a, b)
+    local lenA = #a
+    local lenB = #b
+    local len = lenA < lenB and lenA or lenB
+    for i = 1, len do
+        local cA = a:byte(i)
+        local cB = b:byte(i)
+        if cA < cB then
+            return true
+        elseif cA > cB then
+            return false
+        end
+    end
+    return lenA < lenB
+end
+
 --- 深拷贝（不处理元表）
 ---@param source  table
 ---@param target? table
