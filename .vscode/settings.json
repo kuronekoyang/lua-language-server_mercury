@@ -8,4 +8,7 @@
         //"--shownode",
         //"--lazy",
     ],
+    "Lua.runtime.nonstandardSymbol": [
+        "async",
+    ],
 }
