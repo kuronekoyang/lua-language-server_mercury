@@ -789,6 +789,41 @@ function vm.bindAs(source)
     return false
 end
 
+--local function isAsyncReturn(source)
+--    local parent = source.parent
+--    if parent and parent.type == 'return' then
+--        local parentParent = parent.parent
+--        if parentParent then
+--            return parentParent.isAsync
+--        end
+--    end
+--end
+--
+--local function foreachTaskField(source, func)
+--    local global = vm.getGlobal('type', 'Task')
+--    if not global then
+--        return
+--    end
+--    local links = global.links
+--    if not links then
+--        return
+--    end
+--    for _, t in pairs(links) do
+--        local sets = t.sets
+--        if sets then
+--            for i = 1, #sets do
+--                local fields = sets[i].fields
+--                if fields then
+--                    for ii = 1, #fields do
+--                        local res = fields[ii]
+--                        func(res)
+--                    end
+--                end
+--            end
+--        end
+--    end
+--end
+
 ---@param source parser.object | vm.variable
 ---@param key string|vm.global|vm.ANY|vm.ANYDOC
 ---@return parser.object[] docedResults
@@ -831,6 +866,18 @@ function vm.getNodesOfParentNode(source, key)
             end)
         end
     end
+    --for node in parentNode:eachObject() do
+    --    if isAsyncReturn(node) then
+    --        foreachTaskField(source, function(res)
+    --            if mark[res] then
+    --                return
+    --            end
+    --            mark[res] = true
+    --            docedResults[#docedResults+1] = res
+    --        end)
+    --        break
+    --    end
+    --end
 
     if not next(mark) then
         searchFieldByLocalID(source, key, function (res, markDoc)

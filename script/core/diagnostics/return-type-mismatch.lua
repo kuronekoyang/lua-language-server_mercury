@@ -81,6 +81,9 @@ return function (uri, callback)
         if not source.returns then
             return
         end
+        if source.isAsync then
+            return
+        end
         await.delay()
         local docReturns = getDocReturns(source)
         if not docReturns then

@@ -2304,6 +2304,9 @@ local function parseFunction(isLocal, isAction)
             [2] = funcRight,
         },
     }
+    if isAsync then
+        func.isAsync = true
+    end
     
     Index = Index + 2
     skipSpace(true)

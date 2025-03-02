@@ -147,6 +147,13 @@ function vm.countReturnsOfFunction(func, onlyDoc, mark)
     if func.type == 'function' then
         ---@type integer?, number?, integer?
         local min, max, def
+
+        if func.isAsync then
+            min = 1
+            max = 1
+            def = 1
+        end
+
         local hasDocReturn
         if func.bindDocs then
             local lastReturn

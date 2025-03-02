@@ -37,17 +37,30 @@ local inferSorted = {
     ['nil']      = 100,
 }
 
+local function tryViewToTask(source, type)
+    type = type or tostring(source.type)
+    local parent = source and source.parent
+    local parentType = parent and parent.type
+    if parentType == 'return' then
+        local parentParent = parent.parent
+        if parentParent and parentParent.isAsync then
+            return ('Task<%s>'):format(type)
+        end
+    end
+    return type
+end
+
 local viewNodeSwitch;viewNodeSwitch = util.switch()
     : case 'nil'
     : case 'boolean'
     : case 'string'
     : case 'integer'
     : call(function (source, _infer)
-        return source.type
+        return tryViewToTask(source)
     end)
     : case 'number'
     : call(function (source, _infer)
-        return source.type
+        return tryViewToTask(source)
     end)
     : case 'table'
     : call(function (source, infer, uri)
@@ -55,14 +68,14 @@ local viewNodeSwitch;viewNodeSwitch = util.switch()
         if docs then
             for _, doc in ipairs(docs) do
                 if doc.type == 'doc.enum' then
-                    return 'enum ' .. doc.enum[1]
+                    return tryViewToTask(source, 'enum ' .. doc.enum[1])
                 end
             end
         end
 
         if #source == 1 and source[1].type == 'varargs' then
             local node = vm.getInfer(source[1]):view(uri)
-            return ('%s[]'):format(node)
+            return tryViewToTask(source, ('%s[]'):format(node))
         end
 
         infer._hasTable = true

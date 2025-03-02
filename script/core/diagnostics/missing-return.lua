@@ -54,6 +54,9 @@ return function (uri, callback)
             return
         end
         await.delay()
+        if source.isAsync then
+            return
+        end
         if vm.countReturnsOfSource(source) == 0 then
             return
         end
