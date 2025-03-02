@@ -13,6 +13,9 @@ return function (uri, callback)
 
     ---@async
     guide.eachSourceType(state.ast, 'function', function (source)
+        if source.isAsync then
+            return
+        end
         local returns = source.returns
         if not returns then
             return

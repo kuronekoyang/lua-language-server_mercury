@@ -53,10 +53,10 @@ return function (uri, callback)
         if isMeta and vm.isEmptyFunction(source) then
             return
         end
-        await.delay()
         if source.isAsync then
             return
         end
+        await.delay()
         if vm.countReturnsOfSource(source) == 0 then
             return
         end
